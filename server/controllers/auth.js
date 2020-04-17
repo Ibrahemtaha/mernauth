@@ -41,7 +41,7 @@ exports.signup = async (req, res) => {
   const user = await User.findOne({ where: { email } });
   // User.findOne({ email }),
   // (err, user) => {
-  console.log(user);
+  //console.log(user);
 
   if (user) {
     return res.status(400).json({
