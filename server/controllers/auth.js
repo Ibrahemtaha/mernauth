@@ -4,9 +4,7 @@ const jwt = require("jsonwebtoken");
 // Sendgrid
 const sgMail = require("@sendgrid/mail");
 //sgMail.setApiKey(process.env.SENDGRD_API_KEY);
-sgMail.setApiKey(
-  `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`
-);
+sgMail.setApiKey(process.env.SENDGRD_API_KEY2);
 
 ///
 // exports.signup = (req, res) => {
@@ -40,7 +38,7 @@ sgMail.setApiKey(
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
   //console.log(req.body);
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { email: email } });
   // User.findOne({ email }),
   // (err, user) => {
   console.log(user);
@@ -59,7 +57,7 @@ exports.signup = async (req, res) => {
   // End Token Sign
   // Start Email Template
   const emailData = {
-    from: process.env.EMAIL_FROM,
+    from: `bremoo87@hotmail.com`,
     to: email,
     subject: `Account activation link`,
     html: `
@@ -81,11 +79,13 @@ exports.signup = async (req, res) => {
         message: `Email has been sent to ${email}. Follow the instruction to activate your email `,
       });
     })
+
     .catch((err) => {
-      console.log("SIGNUP EMAIL SENT ERROR", err);
+      //console.log("SIGNUP EMAIL SENT ERROR", err);
       return res.json({
         message: err.message,
       });
     });
+  //console.log(emailData);
   // END sgMAIL Start
 };
