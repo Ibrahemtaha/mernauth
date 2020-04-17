@@ -38,7 +38,7 @@ sgMail.setApiKey(process.env.SENDGRD_API_KEY2);
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
   //console.log(req.body);
-  const user = await User.findOne({ where: { email: email } });
+  const user = await User.findOne({ where: { email } });
   // User.findOne({ email }),
   // (err, user) => {
   console.log(user);
