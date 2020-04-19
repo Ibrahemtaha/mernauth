@@ -142,14 +142,14 @@ exports.signin = async (req, res) => {
     });
   }
   // Authenticate - BcryptJS compare
-  var result = bcrypt.compareSync(password, hash);
+  var result = bcrypt.compareSync(password, user.password);
   if (!result) {
     return res.status(400).json({
       error: "Email and password do not match",
     });
   }
   // generate a token and send to client
-  const token = jwt.sign({ user_id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
   const { user_id, name, role } = user;
