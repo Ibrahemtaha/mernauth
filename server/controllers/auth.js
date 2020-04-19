@@ -52,7 +52,7 @@ exports.signup = async (req, res) => {
   const token = jwt.sign(
     { name, email, password },
     process.env.JWT_ACCOUNT_ACTIVATION,
-    { expiresIn: "10m" }
+    { expiresIn: "20m" }
   );
   // End Token Sign
   // Start Email Template
@@ -91,32 +91,72 @@ exports.signup = async (req, res) => {
 };
 
 exports.accountActivation = (req, res) => {
-  const token = req.body;
-
+  const { token } = req.body;
   if (token) {
-    jwt.verify(token, process.env.JWT_ACCOUNT_ACTIVATION, (err, decoded) => {
-      if (err) {
-        console.log("JWT VERIFY IN ACCOUNT ACTIVATION ERROR", err);
-        return res.status(401).json({
-          error: "Expiered link, Signup again",
-        });
+    jwt.verify(
+      token,
+      process.env.JWT_ACCOUNT_ACTIVATION,
+      async (err, decoded) => {
+        if (err) {
+          console.log("JWT VERIFY IN ACCOUNT ACTIVATION ERROR", err);
+          return res.status(401).json({
+            error: "Expiered link, Signup again",
+          });
+        }
+
+        const { name, email, password } = jwt.decode(token);
+
+        const hash = bcrypt.hashSync(password, 10);
+
+        try {
+          const user = await User.create({ name, email, password: hash });
+          if (user) {
+            return res.json({
+              message: "Signup success. Please Signin",
+            });
+          }
+        } catch (err) {
+          if (err) {
+            console.log("SAVE USER IN ACCOUNT ACTIVATION ERROR", err);
+            return res.status(401).json({
+              error: "Error saving user in database. Try signup again",
+            });
+          }
+        }
       }
-
-      const { name, email, password } = jwt.decode(token);
-
-      const hash = bcrypt.hashSync(password, 10);
-      const user = User.create({ name, email, password: hash });
-
-      if (user) {
-        return res.json({
-          message: "Signup success. Please Signin",
-        });
-      } else {
-        console.log("SAVE USER IN ACCOUNT ACTIVATION ERROR", err);
-        return res.status(401).json({
-          error: "Error saving user in database. Try signup again",
-        });
-      }
+    );
+  } else {
+    return res.json({
+      message: "Something went wrong. Try again. Token didn't work",
     });
   }
+};
+
+exports.signin = async (req, res) => {
+  let { email, password } = req.body;
+
+  const user = await User.findOne({ where: { email: email } });
+  if (!user) {
+    return res.status(400).json({
+      error: "User with that email doesn't exist, please signup",
+    });
+  }
+  // Authenticate - BcryptJS compare
+  var result = bcrypt.compareSync(password, hash);
+  if (!result) {
+    return res.status(400).json({
+      error: "Email and password do not match",
+    });
+  }
+  // generate a token and send to client
+  const token = jwt.sign({ user_id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+  const { user_id, name, role } = user;
+  email = user.email;
+
+  return res.json({
+    token,
+    user: { user_id, name, email, role },
+  });
 };
