@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 // Sendgrid
 const sgMail = require("@sendgrid/mail");
 //sgMail.setApiKey(process.env.SENDGRD_API_KEY);
-sgMail.setApiKey(process.env.SENDGRD_API_KEY2);
+sgMail.setApiKey(process.env.AUTH_UDEMY);
 
 ///
 // exports.signup = (req, res) => {
@@ -38,10 +38,10 @@ sgMail.setApiKey(process.env.SENDGRD_API_KEY2);
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
   //console.log(req.body);
-  const user = await User.findOne({ where: { email } });
+  const user = await User.findOne({ where: { email: email } });
   // User.findOne({ email }),
   // (err, user) => {
-  //console.log(user);
+  console.log(user);
 
   if (user) {
     return res.status(400).json({
@@ -52,12 +52,12 @@ exports.signup = async (req, res) => {
   const token = jwt.sign(
     { name, email, password },
     process.env.JWT_ACCOUNT_ACTIVATION,
-    { expiresIn: "60m" }
+    { expiresIn: "10m" }
   );
   // End Token Sign
   // Start Email Template
   const emailData = {
-    from: `bremoo87@hotmail.com`,
+    from: `bremoo872@hotmail.com`,
     to: email,
     subject: `Account activation link`,
     html: `
@@ -88,4 +88,35 @@ exports.signup = async (req, res) => {
     });
   //console.log(emailData);
   // END sgMAIL Start
+};
+
+exports.accountActivation = (req, res) => {
+  const token = req.body;
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_ACCOUNT_ACTIVATION, (err, decoded) => {
+      if (err) {
+        console.log("JWT VERIFY IN ACCOUNT ACTIVATION ERROR", err);
+        return res.status(401).json({
+          error: "Expiered link, Signup again",
+        });
+      }
+
+      const { name, email, password } = jwt.decode(token);
+
+      const hash = bcrypt.hashSync(password, 10);
+      const user = User.create({ name, email, password: hash });
+
+      if (user) {
+        return res.json({
+          message: "Signup success. Please Signin",
+        });
+      } else {
+        console.log("SAVE USER IN ACCOUNT ACTIVATION ERROR", err);
+        return res.status(401).json({
+          error: "Error saving user in database. Try signup again",
+        });
+      }
+    });
+  }
 };
