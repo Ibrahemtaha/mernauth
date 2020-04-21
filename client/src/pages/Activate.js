@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, Redirect } from "react-router-dom";
 import Nav from "../components/Nav";
 import axios from "axios";
+import jwt from "jsonwebtoken";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -16,30 +17,33 @@ export default function Activate({ match }) {
   useEffect(() => {
     console.log("change");
     let token = match.params.token;
+    let { name } = jwt.decode(token);
     console.log(token);
+    //
+    if (token) {
+      setValues({ ...values, name, token });
+    }
   }, []);
   //Destructuring
   const { name, token, show } = values;
 
   const clickSubmit = (event) => {
     event.preventDefault();
-    setValues({ ...values, buttonText: "Submitting" });
     axios({
       method: "POST",
-      url: `${process.env.REACT_APP_API}/signup`,
+      url: `${process.env.REACT_APP_API}/account-activation`,
       data: { token },
     })
       .then((response) => {
-        console.log("SIGNUP SUCCESS", response);
+        console.log("ACCOUNT ACTIVATION", response);
         setValues({
           ...values,
-          buttonText: "Submitted",
+          show: false,
         });
         toast.success(response.data.message);
       })
       .catch((error) => {
-        console.log("SIGNUP ERROR", error.response.data);
-        setValues({ ...values, buttonText: "Submit" });
+        console.log("Account activation ERROR", error.response.data.error);
         toast.error(error.response.data.error);
       });
   };

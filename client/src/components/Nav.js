@@ -1,7 +1,14 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 
-export default function Nav() {
+const Nav = ({ match, history }) => {
+  const isAcitve = (path) => {
+    if (match.path == path) {
+      return { color: "#fff" };
+    } else {
+      return { color: "#bbb" };
+    }
+  };
   return (
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <a class="navbar-brand" href="#">
@@ -21,19 +28,20 @@ export default function Nav() {
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item active">
-            <Link class="nav-link" to="/">
-              Home <span class="sr-only">(current)</span>
+            <Link class="nav-link" to="/" style={isAcitve("/")}>
+              Home
+              <span class="sr-only">(current)</span>
             </Link>
           </li>
         </ul>
         <ul className="navbar-nav ml-auto">
           <li class="nav-item">
-            <Link class="nav-link" to="Signin">
+            <Link class="nav-link" to="Signin" style={isAcitve("/Signin")}>
               Signin
             </Link>
           </li>
           <li class="nav-item">
-            <Link class="nav-link" to="Signup">
+            <Link class="nav-link" to="Signup" style={isAcitve("/Signup")}>
               Signup
             </Link>
           </li>
@@ -41,4 +49,5 @@ export default function Nav() {
       </div>
     </nav>
   );
-}
+};
+export default withRouter(Nav);
